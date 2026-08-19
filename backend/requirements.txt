@@ -1,0 +1,44 @@
+# Web framework
+fastapi==0.115.12
+uvicorn[standard]==0.34.3
+
+# Database
+sqlalchemy==2.0.41
+psycopg2-binary==2.9.10
+alembic==1.16.2
+
+# Settings management
+pydantic-settings==2.9.1
+
+# Auth
+python-jose[cryptography]==3.4.0
+passlib[bcrypt]==1.7.4
+bcrypt==4.3.0
+
+# File uploads
+python-multipart==0.0.20
+
+# PDF processing
+PyMuPDF==1.25.3
+
+# Embeddings & Vector search
+sentence-transformers==3.4.1
+chromadb==0.6.3
+
+# BM25 keyword search
+rank-bm25==0.2.2
+
+# LLM (Google Gemini - free tier)
+google-generativeai==0.8.5
+langchain==0.3.25
+langchain-google-genai==2.1.4
+
+# Agent framework (Interview Coach)
+langgraph==0.4.1
+
+# Text processing
+nltk==3.9.1
+
+# Testing
+pytest==8.3.5
+httpx==0.28.1
