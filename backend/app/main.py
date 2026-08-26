@@ -2,39 +2,50 @@
 FastAPI application entry point.
 
 This is where the app is created, middleware is configured,
-and all routers are registered.
+database tables are initialized, and all routers are registered.
 """
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
+from app.database import engine, Base
+import app.models  # Import all models so Base knows about them
 from app.routers import health, auth, resume, job_description, analysis, interview
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Create tables automatically on startup if they don't exist
+    Base.metadata.create_all(bind=engine)
+    yield
+
 
 # Create the FastAPI application
 app = FastAPI(
     title=settings.app_name,
     description="AI-powered resume analyzer with hybrid RAG and agentic interview coach",
     version="1.0.0",
+    lifespan=lifespan,
 )
 
-# CORS middleware — allows the React frontend to call the API.
-# Without this, browsers block cross-origin requests (frontend on :5173,
-# backend on :8000 are different origins).
+# CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:5173",   # Vite dev server
-        "http://localhost:3000",   # Alternative dev port
-        "https://ai-resume-coach-xi.vercel.app",       # Vercel production
-        "https://ai-resume-coach.vercel.app",           # Vercel alias
-        "https://ai-rag-resume-production.up.railway.app",  # Railway self
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "https://ai-resume-coach-xi.vercel.app",
+        "https://ai-resume-coach.vercel.app",
+        "https://ai-rag-resume-production.up.railway.app",
     ],
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
-    allow_methods=["*"],     # Allow all HTTP methods (GET, POST, PUT, DELETE, etc.)
-    allow_headers=["*"],     # Allow all headers (including Authorization for JWT)
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
-# Register routers — each router handles a group of related endpoints
+# Register routers
 app.include_router(health.router)
 app.include_router(auth.router)
 app.include_router(resume.router)
