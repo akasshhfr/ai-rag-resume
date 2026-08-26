@@ -28,10 +28,11 @@ chromadb==0.6.3
 # BM25 keyword search
 rank-bm25==0.2.2
 
-# LLM — let pip resolve compatible google-generativeai version
+# LLM — google-generativeai max PyPI version is 0.8.6
+# langchain-google-genai 2.0.7 is the last version compatible with 0.8.x
+google-generativeai==0.8.6
 langchain==0.3.25
-langchain-google-genai==2.1.4
-google-generativeai>=0.8.16
+langchain-google-genai==2.0.7
 
 # Agent framework
 langgraph==0.4.1
