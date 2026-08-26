@@ -32,5 +32,5 @@ class AnalysisSession(Base):
 
     # Relationships
     user = relationship("User", backref="analysis_sessions")
-    resume = relationship("Resume", backref="analysis_sessions")
+    resume = relationship("Resume", back_populates="analysis_sessions")
     job_description = relationship("JobDescription", backref="analysis_sessions")

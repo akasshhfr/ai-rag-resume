@@ -25,6 +25,7 @@ class Resume(Base):
 
     # Relationships
     user = relationship("User", backref="resumes")
+    analysis_sessions = relationship("AnalysisSession", back_populates="resume", cascade="all, delete-orphan", passive_deletes=True)
 
 
 class JobDescription(Base):

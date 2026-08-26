@@ -85,6 +85,8 @@ def delete_analysis(
     current_user: User = Depends(get_current_user),
 ):
     """Delete a specific analysis session by ID."""
+    from app.models.interview import InterviewSession
+
     analysis = (
         db.query(AnalysisSession)
         .filter(
@@ -95,6 +97,15 @@ def delete_analysis(
     )
     if not analysis:
         raise HTTPException(status_code=404, detail="Analysis not found")
+
+    interviews = (
+        db.query(InterviewSession)
+        .filter(InterviewSession.analysis_session_id == analysis_id)
+        .all()
+    )
+    for itv in interviews:
+        itv.analysis_session_id = None
+
     db.delete(analysis)
     db.commit()
     return None

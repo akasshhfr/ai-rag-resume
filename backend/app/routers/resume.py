@@ -117,6 +117,9 @@ def delete_resume(
     current_user: User = Depends(get_current_user),
 ):
     """Delete a specific resume by ID."""
+    from app.models.analysis import AnalysisSession
+    from app.models.interview import InterviewSession
+
     resume = (
         db.query(Resume)
         .filter(Resume.id == resume_id, Resume.user_id == current_user.id)
@@ -124,6 +127,22 @@ def delete_resume(
     )
     if not resume:
         raise HTTPException(status_code=404, detail="Resume not found")
+
+    # Unlink any interview sessions referencing these analysis sessions
+    analysis_sessions = (
+        db.query(AnalysisSession)
+        .filter(AnalysisSession.resume_id == resume_id)
+        .all()
+    )
+    for session in analysis_sessions:
+        interviews = (
+            db.query(InterviewSession)
+            .filter(InterviewSession.analysis_session_id == session.id)
+            .all()
+        )
+        for itv in interviews:
+            itv.analysis_session_id = None
+        db.delete(session)
 
     try:
         embedding_service.client.delete_collection(embedding_service._get_collection_name(str(resume_id)))
@@ -133,4 +152,5 @@ def delete_resume(
     db.delete(resume)
     db.commit()
     return None
+
 
