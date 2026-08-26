@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
-import { Target, AlertCircle, BookOpen, MessageSquare } from 'lucide-react';
+import GlassCard from '../components/GlassCard';
+import PrimaryButton from '../components/PrimaryButton';
+import ScoreGauge from '../components/ScoreGauge';
+import StatusBadge from '../components/StatusBadge';
 
 const AnalysisView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -27,101 +30,101 @@ const AnalysisView: React.FC = () => {
         resume_id: analysis.resume_id,
         analysis_session_id: analysis.id
       });
-      navigate(`/interview/${res.data.session_id}`);
-    } catch (err) {
+      navigate(`/interview/${res.data.session_id}`, {
+        state: {
+          question: res.data.question,
+          difficulty: res.data.difficulty,
+        },
+      });
+    } catch (err: any) {
       console.error(err);
-      alert('Failed to start interview');
+      const detail = err.response?.data?.detail || err.message || 'Failed to start interview';
+      alert('Error: ' + detail);
       setStartingInterview(false);
     }
   };
 
-  if (loading) return <div className="text-center py-10">Loading analysis...</div>;
-  if (!analysis) return <div className="text-center py-10 text-red-400">Analysis not found.</div>;
+  if (loading) return <div style={{ display: 'flex', justifyContent: 'center', padding: '96px', fontFamily: 'Inter, sans-serif', color: 'var(--text-muted)' }}>Loading analysis...</div>;
+  if (!analysis) return <div style={{ display: 'flex', justifyContent: 'center', padding: '96px', fontFamily: 'Inter, sans-serif', color: '#dc2626' }}>Analysis not found.</div>;
 
-  // Ensure JSON parsing if roadmap/skill_gaps are strings
-  const skillGaps = typeof analysis.skill_gaps === 'string' ? JSON.parse(analysis.skill_gaps) : analysis.skill_gaps;
-  const roadmap = typeof analysis.roadmap === 'string' ? JSON.parse(analysis.roadmap) : analysis.roadmap;
+  const rawSkillGaps = typeof analysis.skill_gaps === 'string' ? JSON.parse(analysis.skill_gaps) : analysis.skill_gaps;
+  const rawRoadmap = typeof analysis.roadmap === 'string' ? JSON.parse(analysis.roadmap) : analysis.roadmap;
+  const skillGaps = Array.isArray(rawSkillGaps) ? rawSkillGaps : (rawSkillGaps?.gaps || []);
+  const roadmap = Array.isArray(rawRoadmap) ? rawRoadmap : (rawRoadmap?.roadmap || []);
 
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-start">
+    <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '64px 32px' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '48px', borderBottom: '1px solid var(--border)', paddingBottom: '24px' }}>
         <div>
-          <h1 className="text-3xl font-bold mb-2">Analysis Results</h1>
-          <p className="text-gray-400">Review your fit and start practicing.</p>
+          <p className="el-caption-upper" style={{ marginBottom: '8px' }}>Analysis Results</p>
+          <h1 className="el-display-lg">Resume match report</h1>
         </div>
-        <button
-          onClick={handleStartInterview}
-          disabled={startingInterview}
-          className="flex items-center gap-2 bg-purple-600 hover:bg-purple-500 text-white px-5 py-2.5 rounded-lg transition font-medium disabled:opacity-50"
-        >
-          <MessageSquare className="w-5 h-5" />
-          {startingInterview ? 'Starting...' : 'Start Mock Interview'}
+        <button onClick={handleStartInterview} disabled={startingInterview} className="el-btn-primary">
+          {startingInterview ? 'Starting...' : 'Practice interview →'}
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* ATS Score */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 flex flex-col items-center justify-center text-center">
-          <Target className="w-10 h-10 text-indigo-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-300 mb-2">ATS Match Score</h3>
-          <div className={`text-5xl font-bold mb-2 ${
-            analysis.ats_score >= 80 ? 'text-green-400' :
-            analysis.ats_score >= 60 ? 'text-yellow-400' : 'text-red-400'
-          }`}>
-            {analysis.ats_score}%
+      {/* Score + Gaps: two columns */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '24px', marginBottom: '32px' }}>
+        {/* Score */}
+        <div className="el-card" style={{ padding: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+          <ScoreGauge score={analysis.ats_score} size={160} label="ATS Match" />
+          <div style={{ marginTop: '24px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <span className="el-badge" style={analysis.ats_score >= 80 ? { backgroundColor: '#f0fdf4', color: '#16a34a', border: '1px solid #bbf7d0' } : analysis.ats_score >= 60 ? { backgroundColor: '#fffbeb', color: '#b45309', border: '1px solid #fde68a' } : { backgroundColor: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca' }}>
+              {analysis.ats_score >= 80 ? 'Strong match' : analysis.ats_score >= 60 ? 'Good match' : 'Needs work'}
+            </span>
           </div>
-          <p className="text-sm text-gray-400">Based on job description match</p>
         </div>
 
         {/* Skill Gaps */}
-        <div className="md:col-span-2 bg-gray-900 border border-gray-800 rounded-xl p-6">
-          <h3 className="text-lg font-medium flex items-center gap-2 mb-4">
-            <AlertCircle className="w-5 h-5 text-yellow-500" />
-            Identified Skill Gaps
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            {Array.isArray(skillGaps) && skillGaps.map((gap: any, idx: number) => (
-              <span key={idx} className="bg-gray-800 border border-gray-700 px-3 py-1.5 rounded-lg text-sm flex items-center gap-2">
-                <span className="text-white">{typeof gap === 'string' ? gap : gap.skill}</span>
-                {gap.importance && (
-                  <span className={`text-[10px] uppercase px-1.5 py-0.5 rounded ${
-                    gap.importance === 'high' ? 'bg-red-900/50 text-red-300' :
-                    gap.importance === 'medium' ? 'bg-yellow-900/50 text-yellow-300' :
-                    'bg-blue-900/50 text-blue-300'
-                  }`}>
-                    {gap.importance}
-                  </span>
-                )}
-              </span>
-            ))}
-          </div>
+        <div className="el-card" style={{ padding: '32px' }}>
+          <p className="el-caption-upper" style={{ marginBottom: '20px' }}>Skill gaps identified</p>
+          {skillGaps.length === 0 ? (
+            <p style={{ color: '#16a34a', fontFamily: 'Inter, sans-serif', fontSize: '15px' }}>✓ Great match — no significant gaps found.</p>
+          ) : (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+              {skillGaps.map((gap: any, i: number) => {
+                const name = typeof gap === 'string' ? gap : gap.skill;
+                const importance = typeof gap === 'object' ? gap.importance : '';
+                const variant = importance === 'high' ? { bg: '#fef2f2', color: '#dc2626', border: '#fecaca' } : importance === 'medium' ? { bg: '#fffbeb', color: '#b45309', border: '#fde68a' } : { bg: '#f5f5f4', color: '#4e4e4e', border: '#e7e5e4' };
+                return (
+                  <span key={i} className="el-badge" style={{ backgroundColor: variant.bg, color: variant.color, border: `1px solid ${variant.border}` }}>{name}</span>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
 
       {/* Roadmap */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-        <h3 className="text-lg font-medium flex items-center gap-2 mb-6">
-          <BookOpen className="w-5 h-5 text-indigo-400" />
-          Recommended Learning Roadmap
-        </h3>
-        <div className="space-y-6">
-          {Array.isArray(roadmap) && roadmap.map((step: any, idx: number) => (
-            <div key={idx} className="relative pl-6 border-l-2 border-indigo-900/50 last:border-transparent">
-              <div className="absolute w-3 h-3 bg-indigo-500 rounded-full -left-[7px] top-1.5 ring-4 ring-gray-900" />
-              <h4 className="text-white font-medium text-lg mb-1">{step.title || step.step || `Step ${idx + 1}`}</h4>
-              <p className="text-gray-400 text-sm mb-2">{step.description}</p>
-              {step.resources && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {step.resources.map((res: string, rIdx: number) => (
-                    <span key={rIdx} className="text-xs bg-gray-800 text-indigo-300 px-2 py-1 rounded">
-                      {res}
-                    </span>
-                  ))}
+      <div className="el-card" style={{ padding: '40px' }}>
+        <p className="el-caption-upper" style={{ marginBottom: '8px' }}>Learning Roadmap</p>
+        <h2 className="el-display-md" style={{ marginBottom: '40px' }}>Your path to the role</h2>
+        {roadmap.length === 0 ? (
+          <p style={{ color: 'var(--text-muted)', fontFamily: 'Inter, sans-serif' }}>No roadmap generated.</p>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+            {roadmap.map((step: any, idx: number) => (
+              <div key={idx} style={{ display: 'flex', gap: '24px', animation: `fadeSlideUp 0.4s ease both`, animationDelay: `${idx * 80}ms`, opacity: 0 }}>
+                <div style={{ flexShrink: 0, width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'var(--color-primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'EB Garamond', Georgia, serif", fontSize: '18px', fontWeight: 300 }}>{step.month || idx + 1}</div>
+                <div style={{ flex: 1, paddingTop: '4px' }}>
+                  <h3 style={{ fontFamily: "'EB Garamond', Georgia, serif", fontSize: '20px', fontWeight: 300, color: 'var(--text-h)', marginBottom: '8px' }}>{step.focus || step.title || step.step || `Step ${idx + 1}`}</h3>
+                  {step.skills && Array.isArray(step.skills) && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '10px' }}>{step.skills.map((s: string, si: number) => <span key={si} className="el-badge">{s}</span>)}</div>
+                  )}
+                  {step.tasks && Array.isArray(step.tasks) && (
+                    <ul style={{ margin: '0 0 10px', paddingLeft: '18px', fontFamily: 'Inter, sans-serif', fontSize: '15px', color: 'var(--text-body)', lineHeight: 1.6 }}>{step.tasks.map((t: string, ti: number) => <li key={ti}>{t}</li>)}</ul>
+                  )}
+                  {step.description && <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '15px', color: 'var(--text-muted)', lineHeight: 1.6 }}>{step.description}</p>}
+                  {step.resources && Array.isArray(step.resources) && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>{step.resources.map((r: string, ri: number) => <span key={ri} style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'var(--color-primary)', textDecoration: 'underline', textDecorationColor: 'var(--border)' }}>{r}</span>)}</div>
+                  )}
                 </div>
-              )}
-            </div>
-          ))}
-        </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

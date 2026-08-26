@@ -61,6 +61,7 @@ def start_interview(
             resume_text=resume.raw_text,
             jd_text=jd_text,
             skill_gaps=skill_gaps,
+            analysis_session_id=request.analysis_session_id,
         )
         return {
             "session_id": str(session.id),

@@ -2,28 +2,32 @@
 LLM Service: abstracted interface for language model calls.
 
 Uses Google Gemini (free tier) as the primary provider.
-The abstraction makes it easy to swap to OpenAI/Claude later
-by implementing the same interface.
 """
 import json
 import google.generativeai as genai
 from app.config import settings
 
-
-# Configure the Gemini SDK with our API key
+# Configure Gemini with our API key
 genai.configure(api_key=settings.gemini_api_key)
 
 
 class LLMService:
     """
     Abstracted LLM service. All AI features call methods on this class
-    instead of directly using the Gemini SDK, so swapping providers
-    only requires changing this one file.
+    instead of directly using the Gemini SDK.
     """
 
     def __init__(self, model_name: str | None = None):
         self.model_name = model_name or settings.gemini_model
-        self.model = genai.GenerativeModel(self.model_name)
+
+    def _get_model(self, system_prompt: str | None = None):
+        """Get a GenerativeModel, optionally with a system instruction."""
+        if system_prompt:
+            return genai.GenerativeModel(
+                self.model_name,
+                system_instruction=system_prompt,
+            )
+        return genai.GenerativeModel(self.model_name)
 
     def generate(self, prompt: str, system_prompt: str | None = None) -> str:
         """
@@ -37,19 +41,13 @@ class LLMService:
         Returns:
             The model's text response.
         """
-        contents = []
-        if system_prompt:
-            # Gemini uses a different approach for system prompts —
-            # we prepend it as context in the conversation
-            contents.append({"role": "user", "parts": [system_prompt]})
-            contents.append({
-                "role": "model",
-                "parts": ["Understood. I will follow these instructions."],
-            })
-        contents.append({"role": "user", "parts": [prompt]})
-
-        response = self.model.generate_content(contents)
-        return response.text
+        model = self._get_model(system_prompt)
+        try:
+            response = model.generate_content(prompt)
+            return response.text
+        except Exception as e:
+            # If response was blocked or other error, return a safe fallback
+            raise RuntimeError(f"LLM generation failed: {str(e)}")
 
     def generate_json(self, prompt: str, system_prompt: str | None = None) -> dict:
         """
@@ -84,5 +82,5 @@ class LLMService:
             return {"raw_response": raw_response, "parse_error": True}
 
 
-# Singleton instance — import this wherever you need LLM calls
+# Singleton instance
 llm_service = LLMService()

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
-import { Upload, FileText } from 'lucide-react';
+import GlassCard from '../components/GlassCard';
+import PrimaryButton from '../components/PrimaryButton';
 
 const ResumeUpload: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -43,76 +44,70 @@ const ResumeUpload: React.FC = () => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <h1 className="text-3xl font-bold mb-8">New Analysis</h1>
-      
-      {error && <div className="mb-6 p-4 bg-red-900/50 border border-red-800 text-red-200 rounded-lg">{error}</div>}
-      
-      <form onSubmit={handleSubmit} className="space-y-6 bg-gray-900 p-6 rounded-xl border border-gray-800">
-        
-        {/* File Upload */}
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">Resume (PDF)</label>
-          <div className="border-2 border-dashed border-gray-700 rounded-lg p-8 text-center hover:border-indigo-500 transition">
-            <input
-              type="file"
-              accept=".pdf"
-              onChange={(e) => setFile(e.target.files?.[0] || null)}
-              className="hidden"
-              id="resume-upload"
-            />
-            <label htmlFor="resume-upload" className="cursor-pointer flex flex-col items-center">
-              <Upload className="w-10 h-10 text-gray-500 mb-3" />
-              {file ? (
-                <span className="text-indigo-400 font-medium">{file.name}</span>
-              ) : (
-                <span className="text-gray-400">Click to upload your resume (PDF)</span>
-              )}
-            </label>
+    <div style={{ maxWidth: '680px', margin: '0 auto', padding: '64px 32px' }}>
+      <p className="el-caption-upper" style={{ marginBottom: '12px' }}>New Analysis</p>
+      <h1 className="el-display-lg" style={{ marginBottom: '8px' }}>Analyze your resume</h1>
+      <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '16px', color: 'var(--text-muted)', marginBottom: '48px', letterSpacing: '0.16px' }}>Upload your resume and a job description to get your ATS match score and a personalized roadmap.</p>
+
+      {error && (
+        <div style={{ marginBottom: '24px', padding: '12px 16px', borderRadius: '8px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', fontSize: '14px', fontFamily: 'Inter, sans-serif' }}>{error}</div>
+      )}
+
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        {/* Resume upload */}
+        <div className="el-card" style={{ padding: '32px' }}>
+          <p className="el-caption-upper" style={{ marginBottom: '20px' }}>Resume (PDF)</p>
+          <input type="file" accept=".pdf" onChange={e => setFile(e.target.files?.[0] || null)} id="resume-upload" style={{ display: 'none' }} />
+          <label htmlFor="resume-upload" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', border: '1px dashed var(--border-strong)', borderRadius: '12px', padding: '48px 32px', cursor: 'pointer', textAlign: 'center', transition: 'border-color 0.15s ease, background-color 0.15s ease' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#292524'; (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--bg-strong)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-strong)'; (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'; }}
+          >
+            {file ? (
+              <>
+                <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
+                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 9l4.5 4.5L15 4.5" stroke="#16a34a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </div>
+                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '15px', fontWeight: 500, color: 'var(--text-h)' }}>{file.name}</p>
+                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: '#16a34a', marginTop: '4px' }}>Ready to analyze</p>
+              </>
+            ) : (
+              <>
+                <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'var(--bg-strong)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
+                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 12V4M5.5 7L9 3.5 12.5 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M3 13v1.5a.5.5 0 00.5.5h11a.5.5 0 00.5-.5V13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                </div>
+                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '15px', fontWeight: 500, color: 'var(--text-h)', marginBottom: '4px' }}>Drop your PDF here</p>
+                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'var(--text-muted)' }}>or click to browse</p>
+                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'var(--text-muted-soft)', marginTop: '12px' }}>PDF only · We never share your data</p>
+              </>
+            )}
+          </label>
+        </div>
+
+        {/* Job description */}
+        <div className="el-card" style={{ padding: '32px' }}>
+          <p className="el-caption-upper" style={{ marginBottom: '20px' }}>Target Job</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, color: 'var(--text-h)', marginBottom: '6px', fontFamily: 'Inter, sans-serif' }}>Job title</label>
+              <input type="text" value={jdTitle} onChange={e => setJdTitle(e.target.value)} placeholder="e.g. Senior Frontend Engineer"
+                style={{ width: '100%', padding: '12px 16px', borderRadius: '8px', border: '1px solid var(--border-strong)', backgroundColor: 'var(--bg-card)', color: 'var(--text-h)', fontSize: '16px', fontFamily: 'Inter, sans-serif', outline: 'none', boxSizing: 'border-box' }}
+                onFocus={e => { e.target.style.borderColor = '#292524'; e.target.style.boxShadow = '0 0 0 2px rgba(41,37,36,0.08)'; }}
+                onBlur={e => { e.target.style.borderColor = 'var(--border-strong)'; e.target.style.boxShadow = 'none'; }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, color: 'var(--text-h)', marginBottom: '6px', fontFamily: 'Inter, sans-serif' }}>Job description</label>
+              <textarea value={jdText} onChange={e => setJdText(e.target.value)} placeholder="Paste the full job description here..." rows={7}
+                style={{ width: '100%', padding: '12px 16px', borderRadius: '8px', border: '1px solid var(--border-strong)', backgroundColor: 'var(--bg-card)', color: 'var(--text-h)', fontSize: '16px', fontFamily: 'Inter, sans-serif', outline: 'none', resize: 'vertical', boxSizing: 'border-box', lineHeight: '1.5' }}
+                onFocus={e => { e.target.style.borderColor = '#292524'; e.target.style.boxShadow = '0 0 0 2px rgba(41,37,36,0.08)'; }}
+                onBlur={e => { e.target.style.borderColor = 'var(--border-strong)'; e.target.style.boxShadow = 'none'; }}
+              />
+            </div>
           </div>
         </div>
 
-        {/* Job Description */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium flex items-center gap-2 border-b border-gray-800 pb-2">
-            <FileText className="w-5 h-5 text-indigo-400" />
-            Job Description
-          </h3>
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Job Title</label>
-            <input
-              type="text"
-              value={jdTitle}
-              onChange={(e) => setJdTitle(e.target.value)}
-              placeholder="e.g. Senior Frontend Developer"
-              className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-indigo-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Description</label>
-            <textarea
-              value={jdText}
-              onChange={(e) => setJdText(e.target.value)}
-              placeholder="Paste the full job description here..."
-              rows={6}
-              className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-indigo-500 resize-none"
-            />
-          </div>
-        </div>
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium text-lg transition disabled:opacity-50 flex justify-center items-center gap-2"
-        >
-          {loading ? (
-            <>
-              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              Processing...
-            </>
-          ) : (
-            'Run Analysis'
-          )}
+        <button type="submit" disabled={loading || !file || !jdTitle || !jdText} className="el-btn-primary" style={{ width: '100%', height: '48px', fontSize: '16px', borderRadius: '12px' }}>
+          {loading ? 'Analyzing...' : 'Analyze my resume →'}
         </button>
       </form>
     </div>

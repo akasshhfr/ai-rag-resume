@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api/client';
-import { FileText, Activity, Plus } from 'lucide-react';
+import GlassCard from '../components/GlassCard';
+import PrimaryButton from '../components/PrimaryButton';
 
 const Dashboard: React.FC = () => {
   const [resumes, setResumes] = useState<any[]>([]);
@@ -26,71 +27,70 @@ const Dashboard: React.FC = () => {
     fetchData();
   }, []);
 
-  if (loading) return <div className="text-center py-10">Loading dashboard...</div>;
-
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <Link
-          to="/upload"
-          className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg transition font-medium"
-        >
-          <Plus className="w-5 h-5" />
-          New Analysis
-        </Link>
+    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '64px 32px' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '48px', borderBottom: '1px solid var(--border)', paddingBottom: '24px' }}>
+        <div>
+          <p className="el-caption-upper" style={{ marginBottom: '8px' }}>Dashboard</p>
+          <h1 className="el-display-lg">Your workspace</h1>
+        </div>
+        <Link to="/upload" className="el-btn-primary" style={{ textDecoration: 'none' }}>+ New analysis</Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <Activity className="w-5 h-5 text-indigo-400" />
-            Recent Analyses
-          </h2>
-          {analyses.length === 0 ? (
-            <p className="text-gray-400 text-sm">No analyses yet.</p>
-          ) : (
-            <div className="space-y-3">
-              {analyses.map(a => (
-                <Link key={a.id} to={`/analysis/${a.id}`} className="block p-4 bg-gray-800 rounded-lg hover:bg-gray-700 transition border border-gray-700">
-                  <div className="flex justify-between items-center">
+      {loading ? (
+        <p style={{ color: 'var(--text-muted)', fontFamily: 'Inter, sans-serif' }}>Loading...</p>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '24px' }}>
+          {/* Analyses card */}
+          <div className="el-card" style={{ padding: '32px' }}>
+            <p className="el-caption-upper" style={{ marginBottom: '20px' }}>Recent analyses</p>
+            {analyses.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '40px 0' }}>
+                <p style={{ color: 'var(--text-muted)', fontSize: '15px', fontFamily: 'Inter, sans-serif', marginBottom: '16px' }}>No analyses yet</p>
+                <Link to="/upload" className="el-btn-outline" style={{ textDecoration: 'none' }}>Run your first</Link>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                {analyses.map((a: any) => (
+                  <Link key={a.id} to={`/analysis/${a.id}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 0', borderBottom: '1px solid var(--border)', textDecoration: 'none' }}
+                    onMouseEnter={e => (e.currentTarget.style.opacity = '0.7')}
+                    onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+                  >
                     <div>
-                      <p className="font-medium text-white">Score: {a.ats_score}%</p>
-                      <p className="text-xs text-gray-400">{new Date(a.created_at).toLocaleDateString()}</p>
+                      <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '15px', fontWeight: 500, color: 'var(--text-h)' }}>Analysis</p>
+                      <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>{new Date(a.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
                     </div>
-                    <div className={`px-3 py-1 rounded-full text-xs font-bold ${
-                      a.ats_score >= 80 ? 'bg-green-900/50 text-green-400' :
-                      a.ats_score >= 60 ? 'bg-yellow-900/50 text-yellow-400' :
-                      'bg-red-900/50 text-red-400'
-                    }`}>
-                      {a.ats_score >= 80 ? 'Excellent' : a.ats_score >= 60 ? 'Good' : 'Needs Work'}
+                    <span style={{ fontFamily: "'EB Garamond', Georgia, serif", fontSize: '28px', fontWeight: 300, color: a.ats_score >= 80 ? '#16a34a' : a.ats_score >= 60 ? '#b45309' : '#dc2626' }}>{a.ats_score}%</span>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Resumes card */}
+          <div className="el-card" style={{ padding: '32px' }}>
+            <p className="el-caption-upper" style={{ marginBottom: '20px' }}>Uploaded resumes</p>
+            {resumes.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '40px 0' }}>
+                <p style={{ color: 'var(--text-muted)', fontSize: '15px', fontFamily: 'Inter, sans-serif', marginBottom: '16px' }}>No resumes uploaded</p>
+                <Link to="/upload" className="el-btn-outline" style={{ textDecoration: 'none' }}>Upload now</Link>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                {resumes.map((r: any) => (
+                  <div key={r.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 0', borderBottom: '1px solid var(--border)' }}>
+                    <div>
+                      <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '15px', fontWeight: 500, color: 'var(--text-h)', maxWidth: '240px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.filename}</p>
+                      <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>{new Date(r.uploaded_at).toLocaleDateString()}</p>
                     </div>
                   </div>
-                </Link>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <FileText className="w-5 h-5 text-indigo-400" />
-            My Resumes
-          </h2>
-          {resumes.length === 0 ? (
-            <p className="text-gray-400 text-sm">No resumes uploaded.</p>
-          ) : (
-            <div className="space-y-3">
-              {resumes.map(r => (
-                <div key={r.id} className="p-4 bg-gray-800 rounded-lg border border-gray-700">
-                  <p className="font-medium text-white truncate">{r.filename}</p>
-                  <p className="text-xs text-gray-400">{new Date(r.uploaded_at).toLocaleDateString()}</p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+      )}
     </div>
   );
 };

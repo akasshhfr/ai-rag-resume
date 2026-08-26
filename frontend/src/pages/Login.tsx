@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api } from '../api/client';
 import { useAuth } from '../contexts/AuthContext';
+import GlassCard from '../components/GlassCard';
+import PrimaryButton from '../components/PrimaryButton';
+import StatusBadge from '../components/StatusBadge';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -27,41 +30,51 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-16 p-6 bg-gray-900 border border-gray-800 rounded-xl shadow-xl">
-      <h2 className="text-2xl font-bold text-white mb-6 text-center">Welcome Back</h2>
-      {error && <div className="mb-4 p-3 bg-red-900/50 border border-red-800 text-red-200 rounded text-sm">{error}</div>}
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1">Email</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1">Password</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full py-2 px-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium transition disabled:opacity-50"
-        >
-          {loading ? 'Logging in...' : 'Login'}
-        </button>
-      </form>
-      <p className="mt-4 text-center text-sm text-gray-400">
-        Don't have an account? <Link to="/register" className="text-indigo-400 hover:text-indigo-300">Register</Link>
-      </p>
+    <div style={{ minHeight: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px 24px' }}>
+      {/* Hero text — above the card */}
+      <div style={{ textAlign: 'center', marginBottom: '40px', maxWidth: '480px' }}>
+        <p className="el-caption-upper" style={{ marginBottom: '16px' }}>AI Resume Analyzer</p>
+        <h1 className="el-display-xl" style={{ marginBottom: '12px' }}>Analyze your resume,<br/>land the role.</h1>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '16px', color: 'var(--text-muted)', lineHeight: 1.5, letterSpacing: '0.16px' }}>Get your ATS score, find skill gaps, and practice with an AI interviewer.</p>
+      </div>
+
+      {/* Card */}
+      <div className="el-card" style={{ width: '100%', maxWidth: '420px', padding: '40px' }}>
+        <p className="el-caption-upper" style={{ marginBottom: '24px' }}>Sign in to your account</p>
+
+        {error && (
+          <div style={{ marginBottom: '20px', padding: '12px 16px', borderRadius: '8px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', fontSize: '14px', fontFamily: 'Inter, sans-serif' }}>
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div>
+            <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, color: 'var(--text-h)', marginBottom: '6px', fontFamily: 'Inter, sans-serif' }}>Email</label>
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)} required
+              style={{ width: '100%', padding: '12px 16px', borderRadius: '8px', border: '1px solid var(--border-strong)', backgroundColor: 'var(--bg-card)', color: 'var(--text-h)', fontSize: '16px', fontFamily: 'Inter, sans-serif', outline: 'none', boxSizing: 'border-box', letterSpacing: '0.16px' }}
+              onFocus={e => { e.target.style.borderColor = '#292524'; e.target.style.boxShadow = '0 0 0 2px rgba(41,37,36,0.1)'; }}
+              onBlur={e => { e.target.style.borderColor = 'var(--border-strong)'; e.target.style.boxShadow = 'none'; }}
+            />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, color: 'var(--text-h)', marginBottom: '6px', fontFamily: 'Inter, sans-serif' }}>Password</label>
+            <input type="password" value={password} onChange={e => setPassword(e.target.value)} required
+              style={{ width: '100%', padding: '12px 16px', borderRadius: '8px', border: '1px solid var(--border-strong)', backgroundColor: 'var(--bg-card)', color: 'var(--text-h)', fontSize: '16px', fontFamily: 'Inter, sans-serif', outline: 'none', boxSizing: 'border-box', letterSpacing: '0.16px' }}
+              onFocus={e => { e.target.style.borderColor = '#292524'; e.target.style.boxShadow = '0 0 0 2px rgba(41,37,36,0.1)'; }}
+              onBlur={e => { e.target.style.borderColor = 'var(--border-strong)'; e.target.style.boxShadow = 'none'; }}
+            />
+          </div>
+          <button type="submit" disabled={loading} className="el-btn-primary" style={{ width: '100%', marginTop: '8px', height: '44px', fontSize: '15px' }}>
+            {loading ? 'Signing in...' : 'Continue'}
+          </button>
+        </form>
+
+        <p style={{ marginTop: '24px', textAlign: 'center', fontSize: '14px', color: 'var(--text-muted)', fontFamily: 'Inter, sans-serif' }}>
+          Don't have an account?{' '}
+          <Link to="/register" style={{ color: 'var(--color-primary)', fontWeight: 500, textDecoration: 'none' }}>Create one</Link>
+        </p>
+      </div>
     </div>
   );
 };

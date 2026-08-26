@@ -13,7 +13,7 @@ class Settings(BaseSettings):
 
     # Gemini AI
     gemini_api_key: str = Field(..., alias="GEMINI_API_KEY")
-    gemini_model: str = Field(default="gemini-2.0-flash", alias="GEMINI_MODEL")
+    gemini_model: str = Field(default="gemini-3.6-flash", alias="GEMINI_MODEL")
 
     # Embeddings
     embedding_model: str = Field(
@@ -34,6 +34,7 @@ class Settings(BaseSettings):
         env_file = "../.env"
         env_file_encoding = "utf-8"
         extra = "ignore"
+        # On cloud (Railway/Render), env vars come from the system — env_file is optional
 
 
 settings = Settings()

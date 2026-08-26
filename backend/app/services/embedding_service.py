@@ -84,7 +84,7 @@ class EmbeddingService:
         # Delete existing collection if re-uploading
         try:
             self.client.delete_collection(collection_name)
-        except ValueError:
+        except chromadb.errors.NotFoundError:
             pass  # Collection doesn't exist yet, that's fine
 
         collection = self.client.get_or_create_collection(

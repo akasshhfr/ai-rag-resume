@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { api } from '../api/client';
-import { Trophy, Home, MessageSquare, TrendingUp } from 'lucide-react';
+import ScoreGauge from '../components/ScoreGauge';
 
 const InterviewSummary: React.FC = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -21,102 +21,83 @@ const InterviewSummary: React.FC = () => {
     }
   }, [sessionId]);
 
-  if (loading) return <div className="text-center py-10">Loading summary...</div>;
-  if (error || !summary) return <div className="text-center py-10 text-red-400">{error || 'Summary not found'}</div>;
+  if (loading) return <div style={{ display: 'flex', justifyContent: 'center', padding: '96px', fontFamily: 'Inter, sans-serif', color: 'var(--text-muted)' }}>Loading summary...</div>;
+  if (error || !summary) return <div style={{ display: 'flex', justifyContent: 'center', padding: '96px', fontFamily: 'Inter, sans-serif', color: '#dc2626' }}>{error || 'Summary not found'}</div>;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      <div className="text-center mb-10">
-        <div className="inline-flex items-center justify-center w-20 h-20 bg-indigo-900/50 rounded-full mb-4">
-          <Trophy className="w-10 h-10 text-indigo-400" />
+    <div style={{ maxWidth: '900px', margin: '0 auto', padding: '64px 32px' }}>
+      {/* Trophy header */}
+      <div style={{ textAlign: 'center', marginBottom: '64px' }}>
+        <div style={{ width: '56px', height: '56px', borderRadius: '50%', backgroundColor: 'var(--bg-strong)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M6 3h12M6 3v6a6 6 0 0012 0V3M6 3H3v6a3 3 0 003 3M18 3h3v6a3 3 0 01-3 3M12 15v4M8 19h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </div>
-        <h1 className="text-3xl font-bold text-white mb-2">Interview Complete</h1>
-        <p className="text-gray-400">Here's your performance breakdown.</p>
+        <p className="el-caption-upper" style={{ marginBottom: '12px' }}>Interview complete</p>
+        <h1 className="el-display-lg">Your performance</h1>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 text-center">
-          <p className="text-gray-400 text-sm mb-1">Average Score</p>
-          <p className={`text-4xl font-bold ${
-            summary.average_score >= 8 ? 'text-green-400' :
-            summary.average_score >= 5 ? 'text-yellow-400' : 'text-red-400'
-          }`}>{summary.average_score.toFixed(1)}<span className="text-lg text-gray-500">/10</span></p>
+      {/* Stats row */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginBottom: '32px' }}>
+        <div className="el-card" style={{ padding: '32px', textAlign: 'center' }}>
+          <ScoreGauge score={Math.round(summary.average_score * 100)} size={100} label="Score" />
         </div>
-
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 text-center">
-          <p className="text-gray-400 text-sm mb-1">Total Turns</p>
-          <p className="text-4xl font-bold text-white">{summary.total_turns}</p>
+        <div className="el-card" style={{ padding: '32px', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <p className="el-caption-upper" style={{ marginBottom: '8px' }}>Questions</p>
+          <p style={{ fontFamily: "'EB Garamond', Georgia, serif", fontSize: '48px', fontWeight: 300, color: 'var(--text-h)', lineHeight: 1 }}>{summary.total_turns}</p>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px' }}>answered</p>
         </div>
-
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 text-center">
-          <p className="text-gray-400 text-sm mb-1">Difficulty Progression</p>
-          <div className="flex justify-center gap-1 mt-3">
-            {summary.difficulty_progression.map((diff: string, i: number) => (
-              <span key={i} className={`w-3 h-8 rounded-sm ${
-                diff === 'hard' ? 'bg-red-500' :
-                diff === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
-              }`} title={`Turn ${i+1}: ${diff}`} />
+        <div className="el-card" style={{ padding: '32px', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <p className="el-caption-upper" style={{ marginBottom: '12px' }}>Difficulty</p>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '4px' }}>
+            {(summary.difficulty_progression || []).map((d: string, i: number) => (
+              <div key={i} style={{ width: '10px', height: '32px', borderRadius: '4px', backgroundColor: d === 'hard' ? '#dc2626' : d === 'medium' ? '#b45309' : '#16a34a' }} title={`Turn ${i+1}: ${d}`} />
             ))}
           </div>
         </div>
       </div>
 
+      {/* Overall feedback */}
       {summary.overall_feedback && (
-        <div className="bg-indigo-900/20 border border-indigo-900/50 rounded-xl p-6">
-          <h3 className="text-lg font-medium text-indigo-300 flex items-center gap-2 mb-3">
-            <TrendingUp className="w-5 h-5" />
-            Overall Feedback
-          </h3>
-          <p className="text-gray-200 leading-relaxed whitespace-pre-wrap">{summary.overall_feedback}</p>
+        <div className="el-card" style={{ padding: '32px', marginBottom: '32px', borderLeft: '3px solid var(--color-primary)' }}>
+          <p className="el-caption-upper" style={{ marginBottom: '16px' }}>Overall feedback</p>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '16px', color: 'var(--text-body)', lineHeight: 1.6, letterSpacing: '0.16px' }}>{summary.overall_feedback}</p>
         </div>
       )}
 
-      <div className="space-y-4">
-        <h3 className="text-xl font-bold border-b border-gray-800 pb-2">Turn by Turn Analysis</h3>
-        {summary.turns.map((turn: any, idx: number) => (
-          <div key={idx} className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-            <div className="flex justify-between items-start mb-4">
-              <span className="text-xs font-bold uppercase text-gray-500 tracking-wider">Turn {turn.turn_number}</span>
-              <div className="flex gap-2">
-                <span className={`text-xs px-2 py-1 rounded font-medium ${
-                  turn.difficulty === 'hard' ? 'bg-red-900/50 text-red-400' :
-                  turn.difficulty === 'medium' ? 'bg-yellow-900/50 text-yellow-400' :
-                  'bg-green-900/50 text-green-400'
-                }`}>{turn.difficulty}</span>
-                <span className={`text-xs px-2 py-1 rounded font-bold ${
-                  turn.score >= 8 ? 'bg-green-900/50 text-green-400' :
-                  turn.score >= 5 ? 'bg-yellow-900/50 text-yellow-400' : 'bg-red-900/50 text-red-400'
-                }`}>Score: {turn.score}/10</span>
+      {/* Turn by turn */}
+      <div style={{ marginBottom: '48px' }}>
+        <p className="el-caption-upper" style={{ marginBottom: '24px' }}>Turn by turn</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {(summary.turns || []).map((turn: any, idx: number) => {
+            const score = turn.score ?? turn.evaluation_score;
+            const scoreNum = typeof score === 'number' ? score : 0;
+            const scoreDisplay = typeof score === 'number' ? (score * 10).toFixed(1) : '—';
+            const difficulty = turn.difficulty || turn.difficulty_level || 'medium';
+            return (
+              <div key={idx} className="el-card" style={{ padding: '24px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <span className="el-badge">Turn {idx + 1}</span>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <span className="el-badge" style={{ backgroundColor: difficulty === 'hard' ? '#fef2f2' : difficulty === 'medium' ? '#fffbeb' : '#f0fdf4', color: difficulty === 'hard' ? '#dc2626' : difficulty === 'medium' ? '#b45309' : '#16a34a', border: `1px solid ${difficulty === 'hard' ? '#fecaca' : difficulty === 'medium' ? '#fde68a' : '#bbf7d0'}` }}>{difficulty}</span>
+                    <span style={{ fontFamily: "'EB Garamond', Georgia, serif", fontSize: '20px', fontWeight: 300, color: scoreNum >= 0.8 ? '#16a34a' : scoreNum >= 0.5 ? '#b45309' : '#dc2626' }}>{scoreDisplay}/10</span>
+                  </div>
+                </div>
+                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '15px', fontWeight: 500, color: 'var(--text-h)', marginBottom: '10px', lineHeight: 1.5 }}>{turn.question}</p>
+                {(turn.answer || turn.user_answer) && (
+                  <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: 'var(--text-muted)', marginBottom: '12px', lineHeight: 1.55, paddingLeft: '14px', borderLeft: '2px solid var(--border)' }}>{turn.answer || turn.user_answer}</p>
+                )}
+                {turn.feedback && (
+                  <div style={{ backgroundColor: 'var(--bg-strong)', borderRadius: '8px', padding: '12px 16px' }}>
+                    <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: 'var(--text-body)', lineHeight: 1.55, margin: 0 }}>{turn.feedback}</p>
+                  </div>
+                )}
               </div>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <p className="text-sm text-indigo-400 mb-1 flex items-center gap-1">
-                  <MessageSquare className="w-4 h-4" /> Question
-                </p>
-                <p className="text-gray-200 font-medium">{turn.question}</p>
-              </div>
-              
-              <div className="pl-4 border-l-2 border-gray-700">
-                <p className="text-sm text-gray-500 mb-1">Your Answer</p>
-                <p className="text-gray-300">{turn.answer}</p>
-              </div>
-
-              <div className="bg-gray-800 rounded-lg p-4">
-                <p className="text-sm text-gray-400 mb-1">Feedback</p>
-                <p className="text-gray-200 text-sm whitespace-pre-wrap">{turn.feedback}</p>
-              </div>
-            </div>
-          </div>
-        ))}
+            );
+          })}
+        </div>
       </div>
 
-      <div className="flex justify-center mt-10">
-        <Link to="/" className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition font-medium border border-gray-700">
-          <Home className="w-5 h-5" />
-          Back to Dashboard
-        </Link>
+      <div style={{ textAlign: 'center' }}>
+        <a href="/" style={{ fontFamily: 'Inter, sans-serif', fontSize: '15px', color: 'var(--text-muted)', textDecoration: 'underline', textDecorationColor: 'var(--border)' }}>← Back to dashboard</a>
       </div>
     </div>
   );

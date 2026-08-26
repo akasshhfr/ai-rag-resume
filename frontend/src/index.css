@@ -1,12 +1,229 @@
 @import "tailwindcss";
 
-@theme {
-  --color-indigo-400: #818cf8;
-  --color-indigo-500: #6366f1;
-  --color-indigo-600: #4f46e5;
-  --color-purple-500: #a855f7;
+/* ===========================================
+   ElevenLabs-inspired Design Tokens
+   Light mode = editorial off-white canvas
+   Dark mode = deep warm-black canvas
+   =========================================== */
+:root {
+  /* Brand / Action */
+  --color-primary: #292524;
+  --color-primary-active: #0c0a09;
+  --color-ink: #0c0a09;
+  --color-on-primary: #ffffff;
+  --color-on-dark: #ffffff;
+  --color-on-dark-soft: #a8a29e;
+
+  /* Text */
+  --color-body: #4e4e4e;
+  --color-body-strong: #292524;
+  --color-muted: #777169;
+  --color-muted-soft: #a8a29e;
+
+  /* Canvas / Surface */
+  --color-canvas: #f5f5f5;
+  --color-canvas-soft: #fafafa;
+  --color-canvas-deep: #0c0a09;
+  --color-surface-card: #ffffff;
+  --color-surface-strong: #f0efed;
+  --color-surface-dark: #0c0a09;
+  --color-surface-dark-elevated: #1c1917;
+
+  /* Hairlines */
+  --color-hairline: #e7e5e4;
+  --color-hairline-soft: #f0efed;
+  --color-hairline-strong: #d6d3d1;
+
+  /* Atmospheric Gradient Stops - decoration only */
+  --color-gradient-mint: #a7e5d3;
+  --color-gradient-peach: #f4c5a8;
+  --color-gradient-lavender: #c8b8e0;
+  --color-gradient-sky: #a8c8e8;
+  --color-gradient-rose: #e8b8c4;
+
+  /* Semantic */
+  --color-success: #16a34a;
+  --color-error: #dc2626;
+
+  /* Applied theme vars (changed by dark mode) */
+  --bg: var(--color-canvas);
+  --bg-card: var(--color-surface-card);
+  --bg-strong: var(--color-surface-strong);
+  --text-h: var(--color-ink);
+  --text-body: var(--color-body);
+  --text-muted: var(--color-muted);
+  --text-muted-soft: var(--color-muted-soft);
+  --border: var(--color-hairline);
+  --border-strong: var(--color-hairline-strong);
+}
+
+/* Dark mode flips to warm-black canvas */
+[data-theme="dark"] {
+  --bg: var(--color-canvas-deep);
+  --bg-card: var(--color-surface-dark-elevated);
+  --bg-strong: #2c2825;
+  --text-h: var(--color-on-dark);
+  --text-body: var(--color-on-dark-soft);
+  --text-muted: #6b6560;
+  --text-muted-soft: #4a4540;
+  --border: #2c2825;
+  --border-strong: #3a3530;
+}
+
+html {
+  transition: background-color 0.3s ease;
 }
 
 body {
-  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  background-color: var(--bg);
+  font-family: 'Inter', sans-serif;
+  color: var(--text-body);
+  font-size: 16px;
+  line-height: 1.5;
+  letter-spacing: 0.16px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Editorial card — white surface, 1px hairline, soft shadow */
+.el-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 0.2s ease, background-color 0.3s ease;
+}
+.el-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+/* Gradient orb card variant */
+.el-orb-card {
+  background-color: var(--color-canvas-soft);
+  border-radius: 24px;
+  padding: 32px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Ink pill button */
+.el-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
+  border-radius: 9999px;
+  padding: 10px 20px;
+  height: 40px;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+.el-btn-primary:hover { background-color: var(--color-primary-active); }
+.el-btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* Outline pill button */
+.el-btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  color: var(--text-h);
+  border-radius: 9999px;
+  padding: 9px 19px;
+  height: 40px;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1;
+  border: 1px solid var(--border-strong);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+.el-btn-outline:hover { background-color: var(--bg-strong); }
+.el-btn-outline:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* Badge pill */
+.el-badge {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--bg-strong);
+  color: var(--text-h);
+  border-radius: 9999px;
+  padding: 4px 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.96px;
+  text-transform: uppercase;
+  line-height: 1.4;
+}
+
+/* Display serif typography */
+.el-display-mega {
+  font-family: 'EB Garamond', 'Georgia', serif;
+  font-size: 64px;
+  font-weight: 300;
+  line-height: 1.05;
+  letter-spacing: -1.92px;
+  color: var(--text-h);
+}
+.el-display-xl {
+  font-family: 'EB Garamond', 'Georgia', serif;
+  font-size: 48px;
+  font-weight: 300;
+  line-height: 1.08;
+  letter-spacing: -0.96px;
+  color: var(--text-h);
+}
+.el-display-lg {
+  font-family: 'EB Garamond', 'Georgia', serif;
+  font-size: 36px;
+  font-weight: 300;
+  line-height: 1.17;
+  letter-spacing: -0.36px;
+  color: var(--text-h);
+}
+.el-display-md {
+  font-family: 'EB Garamond', 'Georgia', serif;
+  font-size: 32px;
+  font-weight: 300;
+  line-height: 1.13;
+  letter-spacing: -0.32px;
+  color: var(--text-h);
+}
+.el-display-sm {
+  font-family: 'EB Garamond', 'Georgia', serif;
+  font-size: 24px;
+  font-weight: 300;
+  line-height: 1.2;
+  color: var(--text-h);
+}
+.el-caption-upper {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.96px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes gaugeAnim {
+  from { stroke-dashoffset: var(--dash-total); }
+  to   { stroke-dashoffset: var(--dash-offset); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

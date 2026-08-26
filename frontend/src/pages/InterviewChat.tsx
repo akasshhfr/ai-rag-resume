@@ -1,184 +1,176 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { api } from '../api/client';
-import { Send, Bot, User, ShieldAlert } from 'lucide-react';
+
+interface ChatMessage {
+  role: 'ai' | 'user';
+  content: string;
+  score?: number;
+}
+
+interface Question {
+  question: string;
+  difficulty: string;
+  turn: number;
+}
 
 const InterviewChat: React.FC = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
+  const location = useLocation();
+
   const [submitting, setSubmitting] = useState(false);
   const [answer, setAnswer] = useState('');
-  
-  // Chat state
-  const [currentQuestion, setCurrentQuestion] = useState<any>(null);
-  const [history, setHistory] = useState<any[]>([]);
+  const [history, setHistory] = useState<ChatMessage[]>([]);
+  const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Scroll to bottom
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [history, currentQuestion]);
 
   useEffect(() => {
-    // If we had an endpoint to get current session status we'd call it here
-    // For now we assume the session was just created and we need to handle state carefully
-    // Actually, we don't have a GET /interview/{session_id} to get CURRENT state, only summary.
-    // So we rely on the component state if it was passed, or we should get it.
-    // Wait, let's try to fetch summary to see if it's already done, or just show an error if refreshed.
-    // To make it robust, we'll just handle the chat flow forward.
-    // In a real app we'd fetch the current active question. Let's just say if no question, we fetch summary.
-  }, [sessionId]);
+    const state = location.state as { question?: string; difficulty?: string } | null;
+    if (state?.question) {
+      setCurrentQuestion({
+        question: state.question,
+        difficulty: state.difficulty || 'medium',
+        turn: 1,
+      });
+    }
+  }, [location.state]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!answer.trim() || !sessionId) return;
+    if (!answer.trim() || !sessionId || !currentQuestion) return;
 
+    const submittedAnswer = answer;
+    setAnswer('');
     setSubmitting(true);
+
+    setHistory(prev => [...prev, { role: 'user', content: submittedAnswer }]);
+
     try {
-      const res = await api.submitAnswer(sessionId, { answer });
+      const res = await api.submitAnswer(sessionId, { answer: submittedAnswer });
       const data = res.data;
 
-      // Add to history
       setHistory(prev => [
         ...prev,
-        { role: 'user', content: answer },
-        { 
-          role: 'ai', 
-          content: data.feedback, 
-          score: data.score,
-          difficulty: currentQuestion?.difficulty
-        }
+        {
+          role: 'ai',
+          content: data.feedback || 'No feedback provided.',
+          score: typeof data.score === 'number' ? Math.round(data.score * 10) : undefined,
+        },
       ]);
-      setAnswer('');
 
       if (data.is_complete) {
-        navigate(`/interview/${sessionId}/summary`);
+        setTimeout(() => navigate(`/interview/${sessionId}/summary`), 1500);
       } else {
         setCurrentQuestion({
           question: data.next_question,
-          difficulty: data.difficulty,
-          turn: data.turn_count + 1
+          difficulty: data.difficulty || 'medium',
+          turn: data.turn_count + 1,
         });
       }
     } catch (err: any) {
       console.error(err);
-      alert(err.response?.data?.detail || 'Failed to submit answer');
+      setHistory(prev => [
+        ...prev,
+        { role: 'ai', content: '⚠️ ' + (err.response?.data?.detail || 'Failed to process your answer. Please try again.') },
+      ]);
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <div className="max-w-3xl mx-auto h-[80vh] flex flex-col bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-xl">
+    <div style={{ maxWidth: '760px', margin: '0 auto', height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column' }}>
       {/* Header */}
-      <div className="bg-gray-950 border-b border-gray-800 p-4 flex justify-between items-center">
-        <div>
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <Bot className="w-5 h-5 text-indigo-400" />
-            AI Interviewer
-          </h2>
-        </div>
-        {currentQuestion && (
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-400">Turn {currentQuestion.turn}</span>
-            <span className={`text-xs px-2 py-1 rounded font-medium ${
-              currentQuestion.difficulty === 'hard' ? 'bg-red-900/50 text-red-400' :
-              currentQuestion.difficulty === 'medium' ? 'bg-yellow-900/50 text-yellow-400' :
-              'bg-green-900/50 text-green-400'
-            }`}>
-              {currentQuestion.difficulty || 'medium'}
-            </span>
+      <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0, backgroundColor: 'var(--bg)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="6" r="3" stroke="white" strokeWidth="1.2"/><path d="M2 13c0-3.314 2.686-5 6-5s6 1.686 6 5" stroke="white" strokeWidth="1.2" strokeLinecap="round"/></svg>
           </div>
-        )}
+          <div>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500, color: 'var(--text-h)' }}>AI Interviewer</p>
+            {currentQuestion && <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'var(--text-muted)' }}>Difficulty: {currentQuestion.difficulty}</p>}
+          </div>
+        </div>
+        {currentQuestion && <span className="el-badge">Turn {currentQuestion.turn}</span>}
       </div>
 
-      {/* Chat Area */}
-      <div className="flex-grow overflow-y-auto p-4 space-y-6">
+      {/* Messages */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '32px 24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
         {history.length === 0 && !currentQuestion && (
-          <div className="text-center text-gray-400 mt-10">
-            <p>Session initialized. Waiting for first question... (Please wait or restart if stuck)</p>
-            {/* Note: Ideally we'd pass the initial question via router state or context, 
-                but for simplicity we'll let user type "Start" if stuck */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, gap: '16px', color: 'var(--text-muted)' }}>
+            <div style={{ width: '56px', height: '56px', borderRadius: '50%', backgroundColor: 'var(--bg-strong)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.5 }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.5"/><path d="M4 20c0-4.418 3.582-7 8-7s8 2.582 8 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+            </div>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '15px' }}>Loading your first question...</p>
           </div>
         )}
 
         {history.map((msg, idx) => (
-          <div key={idx} className={`flex gap-4 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+          <div key={idx} style={{ display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start', gap: '12px', alignItems: 'flex-start' }}>
             {msg.role === 'ai' && (
-              <div className="w-8 h-8 rounded-full bg-indigo-900/50 flex items-center justify-center shrink-0">
-                <Bot className="w-5 h-5 text-indigo-400" />
+              <div style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: 'var(--color-primary)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '4px' }}>
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="6" r="3" stroke="white" strokeWidth="1.3"/><path d="M2 13c0-3.314 2.686-5 6-5s6 1.686 6 5" stroke="white" strokeWidth="1.3" strokeLinecap="round"/></svg>
               </div>
             )}
-            
-            <div className={`max-w-[80%] rounded-2xl p-4 ${
-              msg.role === 'user' 
-                ? 'bg-indigo-600 text-white rounded-br-none' 
-                : 'bg-gray-800 border border-gray-700 text-gray-200 rounded-bl-none'
-            }`}>
-              <p className="whitespace-pre-wrap">{msg.content}</p>
-              
+            <div style={{ maxWidth: '75%', padding: '14px 18px', borderRadius: msg.role === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px', backgroundColor: msg.role === 'user' ? 'var(--color-primary)' : 'var(--bg-card)', border: msg.role === 'ai' ? '1px solid var(--border)' : 'none', color: msg.role === 'user' ? 'white' : 'var(--text-h)', fontFamily: 'Inter, sans-serif', fontSize: '15px', lineHeight: 1.55 }}>
+              <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{msg.content}</p>
               {msg.role === 'ai' && msg.score !== undefined && (
-                <div className="mt-3 pt-3 border-t border-gray-700 flex items-center gap-2 text-sm">
-                  <span className="text-gray-400">Score:</span>
-                  <span className={`font-bold ${
-                    msg.score >= 8 ? 'text-green-400' :
-                    msg.score >= 5 ? 'text-yellow-400' : 'text-red-400'
-                  }`}>{msg.score}/10</span>
+                <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'var(--text-muted)' }}>Score</span>
+                  <span style={{ fontFamily: "'EB Garamond', Georgia, serif", fontSize: '18px', fontWeight: 300, color: msg.score >= 8 ? '#16a34a' : msg.score >= 5 ? '#b45309' : '#dc2626' }}>{msg.score}/10</span>
                 </div>
               )}
             </div>
-
-            {msg.role === 'user' && (
-              <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center shrink-0">
-                <User className="w-5 h-5 text-gray-300" />
-              </div>
-            )}
           </div>
         ))}
 
+        {/* Current question */}
         {currentQuestion && (
-          <div className="flex gap-4 justify-start">
-            <div className="w-8 h-8 rounded-full bg-indigo-900/50 flex items-center justify-center shrink-0">
-              <Bot className="w-5 h-5 text-indigo-400" />
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+            <div style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: 'var(--color-primary)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '4px' }}>
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="6" r="3" stroke="white" strokeWidth="1.3"/><path d="M2 13c0-3.314 2.686-5 6-5s6 1.686 6 5" stroke="white" strokeWidth="1.3" strokeLinecap="round"/></svg>
             </div>
-            <div className="max-w-[80%] rounded-2xl p-4 bg-gray-800 border border-gray-700 text-gray-200 rounded-bl-none">
-              <p className="whitespace-pre-wrap font-medium">{currentQuestion.question}</p>
+            <div style={{ maxWidth: '75%', padding: '14px 18px', borderRadius: '18px 18px 18px 4px', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-h)', fontFamily: 'Inter, sans-serif', fontSize: '15px', lineHeight: 1.55, fontWeight: 500 }}>
+              {currentQuestion.question}
             </div>
           </div>
         )}
+
+        {/* Typing indicator */}
+        {submitting && (
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <div style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="6" r="3" stroke="white" strokeWidth="1.3"/><path d="M2 13c0-3.314 2.686-5 6-5s6 1.686 6 5" stroke="white" strokeWidth="1.3" strokeLinecap="round"/></svg>
+            </div>
+            <div style={{ padding: '14px 18px', borderRadius: '18px 18px 18px 4px', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', display: 'flex', gap: '4px', alignItems: 'center' }}>
+              {[0, 1, 2].map(i => <div key={i} style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--text-muted)', animation: 'bounceDot 1.4s ease infinite', animationDelay: `${i * 0.15}s` }} />)}
+            </div>
+          </div>
+        )}
+
         <div ref={chatEndRef} />
       </div>
 
-      {/* Input Area */}
-      <div className="p-4 bg-gray-950 border-t border-gray-800">
-        <form onSubmit={handleSubmit} className="flex gap-2">
-          <textarea
-            value={answer}
-            onChange={(e) => setAnswer(e.target.value)}
-            placeholder="Type your answer here..."
-            className="flex-grow bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-indigo-500 resize-none h-14"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSubmit(e);
-              }
-            }}
+      {/* Input */}
+      <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border)', flexShrink: 0, backgroundColor: 'var(--bg)' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '12px', alignItems: 'flex-end' }}>
+          <textarea value={answer} onChange={e => setAnswer(e.target.value)} placeholder={currentQuestion ? 'Type your answer...' : 'Waiting for question...'} disabled={!currentQuestion || submitting}
+            style={{ flex: 1, padding: '12px 16px', borderRadius: '12px', border: '1px solid var(--border-strong)', backgroundColor: 'var(--bg-card)', color: 'var(--text-h)', fontSize: '15px', fontFamily: 'Inter, sans-serif', resize: 'none', minHeight: '52px', maxHeight: '140px', outline: 'none', lineHeight: 1.5 }}
+            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(e); } }}
+            onFocus={e => { e.target.style.borderColor = '#292524'; }}
+            onBlur={e => { e.target.style.borderColor = 'var(--border-strong)'; }}
           />
-          <button
-            type="submit"
-            disabled={submitting || !answer.trim()}
-            className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 rounded-lg transition disabled:opacity-50 flex items-center justify-center"
-          >
-            {submitting ? (
-              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            ) : (
-              <Send className="w-5 h-5" />
-            )}
+          <button type="submit" disabled={submitting || !answer.trim() || !currentQuestion} className="el-btn-primary" style={{ height: '52px', width: '52px', padding: 0, borderRadius: '12px', flexShrink: 0 }}>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13.5 8L2.5 2l2 6-2 6z" fill="white"/></svg>
           </button>
         </form>
-        <p className="text-xs text-gray-500 mt-2 text-center">Press Enter to submit, Shift+Enter for new line.</p>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'var(--text-muted)', textAlign: 'center', marginTop: '8px' }}>Enter to send · Shift+Enter for new line</p>
       </div>
     </div>
   );
