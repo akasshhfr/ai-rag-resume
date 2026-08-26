@@ -31,6 +31,7 @@ export const api = {
   },
   listResumes: () => client.get('/resumes/'),
   getResume: (id: string) => client.get(`/resumes/${id}`),
+  deleteResume: (id: string) => client.delete(`/resumes/${id}`),
 
   // Job Descriptions
   createJobDescription: (data: any) => client.post('/job-descriptions/', data),
@@ -41,6 +42,7 @@ export const api = {
   runAnalysis: (data: any) => client.post('/analysis/run', data),
   getAnalysis: (id: string) => client.get(`/analysis/${id}`),
   listAnalyses: () => client.get('/analysis/'),
+  deleteAnalysis: (id: string) => client.delete(`/analysis/${id}`),
 
   // Interview
   startInterview: (data: any) => client.post('/interview/start', data),

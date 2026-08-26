@@ -22,26 +22,11 @@ export default function Navbar() {
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 32px', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         {/* Wordmark */}
         <Link to="/" style={{ fontFamily: "'EB Garamond', Georgia, serif", fontSize: '20px', fontWeight: 300, letterSpacing: '-0.3px', color: 'var(--text-h)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px' }}>
-          {/* Target / bullseye logo */}
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-            {/* Outer red ring */}
-            <circle cx="14" cy="18" r="13" fill="#E8344A"/>
-            {/* White ring */}
-            <circle cx="14" cy="18" r="9.5" fill="white"/>
-            {/* Middle red ring */}
-            <circle cx="14" cy="18" r="7" fill="#E8344A"/>
-            {/* Inner white ring */}
-            <circle cx="14" cy="18" r="4.5" fill="white"/>
-            {/* Bullseye center */}
-            <circle cx="14" cy="18" r="2.5" fill="#E8344A"/>
-            {/* Arrow shaft — diagonal from top-right to center */}
-            <line x1="29" y1="3" x2="14.5" y2="17.5" stroke="#9CA3AF" strokeWidth="1.8" strokeLinecap="round"/>
-            {/* Arrow tip */}
-            <circle cx="14" cy="18" r="1" fill="#6B7280"/>
-            {/* Arrow fletching — golden/amber tail */}
-            <path d="M28 4 L31 1.5 L29.5 5 L32 6 L28 4Z" fill="#F59E0B"/>
-            <path d="M28 4 L25.5 2.5 L29 1.5 L28 4Z" fill="#D97706"/>
-          </svg>
+          <div style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M2 7h10M7 2v10" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+          </div>
           AI Resume Coach
         </Link>
 

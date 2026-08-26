@@ -76,3 +76,26 @@ def list_analyses(
         .all()
     )
     return analyses
+
+
+@router.delete("/{analysis_id}", status_code=204)
+def delete_analysis(
+    analysis_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Delete a specific analysis session by ID."""
+    analysis = (
+        db.query(AnalysisSession)
+        .filter(
+            AnalysisSession.id == analysis_id,
+            AnalysisSession.user_id == current_user.id,
+        )
+        .first()
+    )
+    if not analysis:
+        raise HTTPException(status_code=404, detail="Analysis not found")
+    db.delete(analysis)
+    db.commit()
+    return None
+
