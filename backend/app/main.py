@@ -23,8 +23,11 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:5173",  # Vite dev server
-        "http://localhost:3000",  # Alternative React port
+        "http://localhost:5173",   # Vite dev server
+        "http://localhost:3000",   # Alternative dev port
+        "https://ai-resume-coach-xi.vercel.app",       # Vercel production
+        "https://ai-resume-coach.vercel.app",           # Vercel alias
+        "https://ai-rag-resume-production.up.railway.app",  # Railway self
     ],
     allow_credentials=True,
     allow_methods=["*"],     # Allow all HTTP methods (GET, POST, PUT, DELETE, etc.)
